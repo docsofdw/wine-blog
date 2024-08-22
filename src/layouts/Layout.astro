@@ -1,0 +1,106 @@
+---
+export interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+	</head>
+	<body>
+		<header>
+			<nav>
+				<div class="logo">WineTech</div>
+				<ul>
+					<li><a href="/">Home</a></li>
+					<li><a href="/about">About</a></li>
+					<li><a href="/contact">Contact</a></li>
+				</ul>
+			</nav>
+		</header>
+		<main>
+			<slot />
+		</main>
+		<footer>
+			<p>© {new Date().getFullYear()} WineTech. All rights reserved.</p>
+		</footer>
+	</body>
+</html>
+<style is:global>
+	:root {
+		--background: #1a1a1a;
+		--text: #ffffff;
+		--accent: #ff4500;
+		--secondary: #333333;
+	}
+	* {
+		box-sizing: border-box;
+	}
+	html {
+		font-family: 'Roboto', sans-serif;
+		background-color: var(--background);
+		color: var(--text);
+	}
+	body {
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+	}
+	header {
+		background-color: var(--secondary);
+		padding: 1rem;
+	}
+	nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+	.logo {
+		font-size: 1.5rem;
+		font-weight: bold;
+		color: var(--accent);
+	}
+	nav ul {
+		display: flex;
+		list-style: none;
+		padding: 0;
+	}
+	nav ul li {
+		margin-left: 1rem;
+	}
+	nav a {
+		color: var(--text);
+		text-decoration: none;
+		transition: color 0.3s ease;
+	}
+	nav a:hover {
+		color: var(--accent);
+	}
+	main {
+		flex: 1;
+		padding: 2rem;
+		max-width: 1200px;
+		margin: 0 auto;
+		width: 100%;
+	}
+	footer {
+		background-color: var(--secondary);
+		color: var(--text);
+		text-align: center;
+		padding: 1rem;
+		margin-top: 2rem;
+	}
+</style>
