@@ -1,0 +1,59 @@
+---
+import { strapi } from "@astrojs/strapi";
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const wines = await strapi.find('wines');
+  return wines.data.map((wine) => ({
+    params: { id: wine.id.toString() },
+  }));
+}
+
+const { id } = Astro.params;
+const wine = await strapi.findOne('wines', id);
+---
+
+<Layout title={`${wine.data.attributes.Name} - WineTech`}>
+    <article class="wine-details">
+        <h1>{wine.data.attributes.Name}</h1>
+        <p class="vintage">Vintage: {wine.data.attributes.Vintage}</p>
+        <p class="type">Type: {wine.data.attributes.Type}</p>
+        <p class="region">Region: {wine.data.attributes.Region}</p>
+        <p class="rating">Rating: {wine.data.attributes.Rating}/5</p>
+        <div class="description" set:html={wine.data.attributes.Description}></div>
+        <a href={wine.data.attributes.OriginalArticleUrl} class="original-article" target="_blank" rel="noopener noreferrer">
+            Read Original Article
+        </a>
+    </article>
+</Layout>
+
+<style>
+    .wine-details {
+        background-color: var(--secondary);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+        color: var(--accent);
+        margin-top: 0;
+    }
+    .vintage, .type, .region, .rating {
+        font-weight: bold;
+    }
+    .description {
+        margin: 1rem 0;
+    }
+    .original-article {
+        display: inline-block;
+        background-color: var(--accent);
+        color: var(--text);
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+    .original-article:hover {
+        background-color: #ff6a33;
+    }
+</style>
