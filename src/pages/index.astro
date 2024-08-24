@@ -1,0 +1,86 @@
+---
+import { strapi } from "@astrojs/strapi";
+import Layout from '../layouts/Layout.astro';
+
+const wines = await strapi.find('wines');
+---
+
+<Layout title="WineTech - Discover Premium Wines">
+	<h1>Discover Premium Wines</h1>
+	<div class="wine-grid">
+		{wines.data.map((wine) => (
+			<div class="wine-card">
+				<div class="wine-info">
+					<h2>{wine.attributes.Name}</h2>
+					<p class="vintage">{wine.attributes.Vintage}</p>
+					<p class="type">{wine.attributes.Type}</p>
+					<div class="rating">
+						{Array.from({ length: 5 }, (_, i) => (
+							<span class={i < wine.attributes.Rating ? "star filled" : "star"}>★</span>
+						))}
+					</div>
+				</div>
+				<a href={`/wine/${wine.id}`} class="read-more">View Details</a>
+			</div>
+		))}
+	</div>
+</Layout>
+
+<style>
+	h1 {
+		font-size: 2.5rem;
+		text-align: center;
+		margin-bottom: 2rem;
+		color: var(--accent);
+	}
+	.wine-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+		gap: 2rem;
+	}
+	.wine-card {
+		background-color: var(--secondary);
+		border-radius: 8px;
+		overflow: hidden;
+		transition: transform 0.3s ease, box-shadow 0.3s ease;
+	}
+	.wine-card:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+	}
+	.wine-info {
+		padding: 1.5rem;
+	}
+	.wine-card h2 {
+		margin: 0;
+		font-size: 1.2rem;
+		color: var(--accent);
+	}
+	.vintage, .type {
+		margin: 0.5rem 0;
+		font-size: 0.9rem;
+		color: #999;
+	}
+	.rating {
+		margin-top: 0.5rem;
+	}
+	.star {
+		color: #ccc;
+		font-size: 1.2rem;
+	}
+	.star.filled {
+		color: var(--accent);
+	}
+	.read-more {
+		display: block;
+		background-color: var(--accent);
+		color: var(--text);
+		text-align: center;
+		padding: 0.75rem;
+		text-decoration: none;
+		transition: background-color 0.3s ease;
+	}
+	.read-more:hover {
+		background-color: #ff6a33;
+	}
+</style>
