@@ -92,19 +92,19 @@ console.log("Wine data:", wines.map(wine => ({
             <div class="wine-image">
               <img 
                 src={getImageUrl(wine)}
-                alt={wine.attributes.Name}
+                alt={wine.Name}
                 loading="lazy"
-                onError="this.onerror=null; this.src='/placeholder-wine.jpg';"
+                onError={() => {this.onerror=null; this.src='/placeholder-wine.jpg';}}
               />
             </div>
             <div class="wine-content">
-              <h2>{wine.attributes.Name}</h2>
-              <p class="vintage">Vintage: {wine.attributes.Vintage}</p>
-              <p class="type">Type: {wine.attributes.Type}</p>
+              <h2>{wine.Name}</h2>
+              <p class="vintage">Vintage: {wine.Vintage}</p>
+              <p class="type">Type: {wine.Type}</p>
               <div class="rating">
                 Rating: 
                 {Array.from({ length: 5 }, (_, i) => (
-                  <span class={i < wine.attributes.Rating ? "star filled" : "star"}>★</span>
+                  <span class={i < wine.Rating ? "star filled" : "star"}>★</span>
                 ))}
               </div>
             </div>

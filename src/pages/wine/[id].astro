@@ -1,25 +1,57 @@
 ---
-const { id } = Astro.params;
-const STRAPI_URL = import.meta.env.PUBLIC_STRAPI_URL;
-const STRAPI_API_TOKEN = import.meta.env.PUBLIC_STRAPI_API_TOKEN;
-
-const response = await fetch(`${STRAPI_URL}/api/wines/${id}?populate=*`, {
-  headers: {
-    'Authorization': `Bearer ${STRAPI_API_TOKEN}`
-  }
-});
-const { data: wine } = await response.json();
-
 export async function getStaticPaths() {
+  const STRAPI_URL = import.meta.env.PUBLIC_STRAPI_URL;
+  const STRAPI_API_TOKEN = import.meta.env.PUBLIC_STRAPI_API_TOKEN;
+
   const response = await fetch(`${STRAPI_URL}/api/wines?populate=*`, {
     headers: {
       'Authorization': `Bearer ${STRAPI_API_TOKEN}`
     }
   });
-  const { data: wines } = await response.json();
-  return wines.map((wine) => ({
+  const data = await response.json();
+  
+  return data.data.map((wine) => ({
     params: { id: wine.id.toString() },
+    props: { wine },
   }));
+}
+
+const { id } = Astro.params;
+const { wine } = Astro.props;
+
+function getImageUrl(wine) {
+  if (wine.attributes.Image?.data?.attributes?.url) {
+    const imageUrl = wine.attributes.Image.data.attributes.url;
+    return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.PUBLIC_STRAPI_URL}${imageUrl}`;
+  }
+  return '/placeholder-wine.jpg';
+}
+
+function renderDescription(description) {
+  if (typeof description === 'string') {
+    return description;
+  } else if (Array.isArray(description)) {
+    return description.map((block) => {
+      if (block.type === 'paragraph') {
+        return `<p>${block.children.map(child => child.text).join('')}</p>`;
+      }
+      // Add more conditions here for other types of content blocks
+      return '';
+    }).join('');
+  } else if (typeof description === 'object' && description !== null) {
+    // If it's a rich text field, it might have a 'children' property
+    if (Array.isArray(description.children)) {
+      return description.children.map(child => {
+        if (child.type === 'paragraph') {
+          return `<p>${child.children.map(textNode => textNode.text).join('')}</p>`;
+        }
+        return '';
+      }).join('');
+    }
+    console.log('Description structure:', JSON.stringify(description, null, 2));
+    return 'Unable to render description. Please check the console for the description structure.';
+  }
+  return 'No description available.';
 }
 ---
 
@@ -29,36 +61,198 @@ export async function getStaticPaths() {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <title>{wine.attributes.Name} - Wine Blog</title>
+    <title>{wine.attributes.Name} - TechVino</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <h1>{wine.attributes.Name}</h1>
-    <p>Vintage: {wine.attributes.Vintage}</p>
-    <p>Type: {wine.attributes.Type}</p>
-    <p>Rating: {wine.attributes.Rating}/5</p>
-    <p>{wine.attributes.Description}</p>
-    <a href="/">Back to Wine List</a>
+    <header>
+      <nav>
+        <div class="logo">TechVino</div>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <div class="back-button-container">
+        <a href="/" class="back-button">← Back to All Wines</a>
+      </div>
+      <article class="wine-detail">
+        <h1>{wine.attributes.Name}</h1>
+        <img src={getImageUrl(wine)} alt={wine.attributes.Name} class="wine-image" />
+        <div class="wine-info">
+          <p><strong>Vintage:</strong> {wine.attributes.Vintage}</p>
+          <p><strong>Type:</strong> {wine.attributes.Type}</p>
+          <p><strong>Rating:</strong> {wine.attributes.Rating}/5</p>
+          <div class="rating">
+            {Array.from({ length: 5 }, (_, i) => (
+              <span class={i < wine.attributes.Rating ? "star filled" : "star"}>★</span>
+            ))}
+          </div>
+        </div>
+        <div class="wine-description">
+          <h2>Description</h2>
+          <div set:html={renderDescription(wine.attributes.Description)} />
+        </div>
+      </article>
+    </main>
+    <footer>
+      <p>&copy; 2024 TechVino. All rights reserved.</p>
+    </footer>
   </body>
 </html>
 
 <style>
+  :root {
+    --background: #121212;
+    --surface: #1e1e1e;
+    --primary: #bb86fc;
+    --secondary: #03dac6;
+    --on-background: #ffffff;
+    --on-surface: #ffffff;
+  }
+  
   body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background);
+    color: var(--on-background);
     line-height: 1.6;
-    color: #333;
-    max-width: 800px;
+    margin: 0;
+    padding: 0;
+  }
+  
+  header {
+    background-color: var(--surface);
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  nav {
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
   }
-  h1 {
-    color: #8B0000;
+  
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
   }
-  a {
-    display: inline-block;
-    background: #8B0000;
-    color: #fff;
-    padding: 10px 15px;
+  
+  nav ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  nav ul li {
+    margin-left: 2rem;
+  }
+  
+  nav ul li a {
+    color: var(--on-surface);
     text-decoration: none;
-    border-radius: 5px;
+    transition: color 0.3s ease;
+  }
+  
+  nav ul li a:hover {
+    color: var(--primary);
+  }
+  
+  main {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  
+  .back-button-container {
+    margin-bottom: 1rem;
+  }
+  
+  .back-button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary);
+    color: var(--background);
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .back-button:hover {
+    background-color: var(--secondary);
+  }
+  
+  .wine-detail h1 {
+    color: var(--primary);
+    margin-bottom: 1rem;
+  }
+  
+  .wine-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  
+  .wine-info {
+    background-color: var(--surface);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  
+  .rating {
+    margin-top: 0.5rem;
+  }
+  
+  .star {
+    color: #555;
+    font-size: 1.2rem;
+  }
+  
+  .star.filled {
+    color: var(--primary);
+  }
+  
+  .wine-description {
+    background-color: var(--surface);
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  
+  .wine-description h2 {
+    color: var(--secondary);
+    margin-top: 0;
+  }
+  
+  footer {
+    background-color: var(--surface);
+    color: var(--on-surface);
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    nav {
+      flex-direction: column;
+    }
+    
+    nav ul {
+      margin-top: 1rem;
+    }
+    
+    nav ul li {
+      margin-left: 1rem;
+      margin-right: 1rem;
+    }
   }
 </style>
