@@ -1,59 +1,64 @@
 ---
-import { strapi } from "@astrojs/strapi";
-import Layout from '../../layouts/Layout.astro';
+const { id } = Astro.params;
+const STRAPI_URL = import.meta.env.PUBLIC_STRAPI_URL;
+const STRAPI_API_TOKEN = import.meta.env.PUBLIC_STRAPI_API_TOKEN;
+
+const response = await fetch(`${STRAPI_URL}/api/wines/${id}?populate=*`, {
+  headers: {
+    'Authorization': `Bearer ${STRAPI_API_TOKEN}`
+  }
+});
+const { data: wine } = await response.json();
 
 export async function getStaticPaths() {
-  const wines = await strapi.find('wines');
-  return wines.data.map((wine) => ({
+  const response = await fetch(`${STRAPI_URL}/api/wines?populate=*`, {
+    headers: {
+      'Authorization': `Bearer ${STRAPI_API_TOKEN}`
+    }
+  });
+  const { data: wines } = await response.json();
+  return wines.map((wine) => ({
     params: { id: wine.id.toString() },
   }));
 }
-
-const { id } = Astro.params;
-const wine = await strapi.findOne('wines', id);
 ---
 
-<Layout title={`${wine.data.attributes.Name} - WineTech`}>
-    <article class="wine-details">
-        <h1>{wine.data.attributes.Name}</h1>
-        <p class="vintage">Vintage: {wine.data.attributes.Vintage}</p>
-        <p class="type">Type: {wine.data.attributes.Type}</p>
-        <p class="region">Region: {wine.data.attributes.Region}</p>
-        <p class="rating">Rating: {wine.data.attributes.Rating}/5</p>
-        <div class="description" set:html={wine.data.attributes.Description}></div>
-        <a href={wine.data.attributes.OriginalArticleUrl} class="original-article" target="_blank" rel="noopener noreferrer">
-            Read Original Article
-        </a>
-    </article>
-</Layout>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{wine.attributes.Name} - Wine Blog</title>
+  </head>
+  <body>
+    <h1>{wine.attributes.Name}</h1>
+    <p>Vintage: {wine.attributes.Vintage}</p>
+    <p>Type: {wine.attributes.Type}</p>
+    <p>Rating: {wine.attributes.Rating}/5</p>
+    <p>{wine.attributes.Description}</p>
+    <a href="/">Back to Wine List</a>
+  </body>
+</html>
 
 <style>
-    .wine-details {
-        background-color: var(--secondary);
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-        color: var(--accent);
-        margin-top: 0;
-    }
-    .vintage, .type, .region, .rating {
-        font-weight: bold;
-    }
-    .description {
-        margin: 1rem 0;
-    }
-    .original-article {
-        display: inline-block;
-        background-color: var(--accent);
-        color: var(--text);
-        padding: 0.5rem 1rem;
-        text-decoration: none;
-        border-radius: 4px;
-        transition: background-color 0.3s ease;
-    }
-    .original-article:hover {
-        background-color: #ff6a33;
-    }
+  body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  h1 {
+    color: #8B0000;
+  }
+  a {
+    display: inline-block;
+    background: #8B0000;
+    color: #fff;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+  }
 </style>
