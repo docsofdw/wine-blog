@@ -5,15 +5,21 @@ const STRAPI_API_TOKEN = import.meta.env.PUBLIC_STRAPI_API_TOKEN;
 function getImageUrl(wine) {
   if (wine.attributes.Image?.data?.attributes?.url) {
     const imageUrl = wine.attributes.Image.data.attributes.url;
-    // If the image URL is already absolute, return it as is
-    if (imageUrl.startsWith('http')) {
-      return imageUrl;
-    }
-    // If it's a relative URL, prepend the Strapi URL
-    return `${STRAPI_URL}${imageUrl}`;
+    return imageUrl.startsWith('http') ? imageUrl : `${STRAPI_URL}${imageUrl}`;
   }
-  // Fallback to a placeholder image if no image is available
   return '/placeholder-wine.jpg';
+}
+
+function getCountryFlag(country) {
+  const flagEmojis = {
+    'France': '🇫🇷',
+    'Italy': '🇮🇹',
+    'Spain': '🇪🇸',
+    'Germany': '🇩🇪',
+    'USA': '🇺🇸'
+    // Add more countries and their flag emojis as needed
+  };
+  return flagEmojis[country] || '🏳️';
 }
 
 let wines = [];
@@ -22,20 +28,20 @@ let error = null;
 try {
   const url = `${STRAPI_URL}/api/wines?populate=*`;
   console.log("Fetching from URL:", url);
-  
+
   const response = await fetch(url, {
     headers: {
       'Authorization': `Bearer ${STRAPI_API_TOKEN}`
     }
   });
-  
+
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  
+
   const data = await response.json();
   console.log("Raw API response:", JSON.stringify(data, null, 2));
-  
+
   if (data.data && Array.isArray(data.data)) {
     wines = data.data;
   } else {
@@ -50,7 +56,7 @@ console.log("STRAPI_URL:", STRAPI_URL);
 console.log("Wine data:", wines.map(wine => ({
   name: wine.attributes.Name,
   imageUrl: getImageUrl(wine),
-  rawImageData: wine.attributes.Image
+  country: wine.attributes.Country
 })));
 ---
 
@@ -61,12 +67,14 @@ console.log("Wine data:", wines.map(wine => ({
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <title>TechVino | Discover Premium Wines</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   </head>
   <body>
-    <header>
-      <nav>
+    <div class="container">
+      <header>
+        <nav class="center-nav">
+          <div class="nav-content">
         <div class="logo">TechVino</div>
         <ul>
           <li><a href="#" class="active">Home</a></li>
@@ -76,46 +84,48 @@ console.log("Wine data:", wines.map(wine => ({
         <button id="theme-toggle" aria-label="Toggle dark/light mode">
           <i class="fas fa-moon"></i>
         </button>
-      </nav>
-    </header>
-    <main>
-      <h1>Discover Premium Wines</h1>
-      <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search wines...">
-        <button id="search-button"><i class="fas fa-search"></i></button>
-      </div>
-      {error && <p class="error">Error: {error}</p>}
-      {wines.length === 0 && !error && <p class="no-wines">No wines found. Check console for details.</p>}
-      <div class="wine-grid">
-        {wines.map((wine) => (
-          <div class="wine-card">
-            <div class="wine-image">
+          </div>
+        </nav>
+      </header>
+      </header>
+      <main>
+        <h1 class="main-title">Discover Premium Wines</h1>
+        <div class="search-container">
+          <input type="text" id="search-input" placeholder="Search wines...">
+          <button id="search-button"><i class="fas fa-search"></i></button>
+        </div>
+        {error && <p class="error">Error: {error}</p>}
+        {wines.length === 0 && !error && <p class="no-wines">No wines found. Check console for details.</p>}
+        <div class="wine-grid">
+          {wines.map((wine) => (
+            <div class="wine-card">
+              <div class="wine-image">
               <img 
                 src={getImageUrl(wine)}
-                alt={wine.Name}
+                alt={wine.attributes.Name}
                 loading="lazy"
-                onError={() => {this.onerror=null; this.src='/placeholder-wine.jpg';}}
+                onError="this.onerror=null; this.src='/placeholder-wine.jpg';"
               />
-            </div>
-            <div class="wine-content">
-              <h2>{wine.Name}</h2>
-              <p class="vintage">Vintage: {wine.Vintage}</p>
-              <p class="type">Type: {wine.Type}</p>
-              <div class="rating">
-                Rating: 
-                {Array.from({ length: 5 }, (_, i) => (
-                  <span class={i < wine.Rating ? "star filled" : "star"}>★</span>
-                ))}
+              <div class="country-tag">
+                <span class="country-flag">{getCountryFlag(wine.attributes.Country)}</span>
+                <span class="country-name">{wine.attributes.Country}</span>
               </div>
+              </div>
+              <div class="wine-content">
+              <h2>{wine.attributes.Name}</h2>
+              </div>
+              <a href={`/wine/${wine.id}`} class="view-details">View Details</a>
             </div>
-            <a href={`/wine/${wine.id}`} class="view-details">View Details</a>
-          </div>
-        ))}
-      </div>
-    </main>
-    <footer>
-      <p>&copy; 2024 TechVino. All rights reserved.</p>
-    </footer>
+            </div>
+          ))}
+        </div>
+      </main>
+      <footer>
+        <p>&copy; Designed & Developed by docsofdw</p>
+      </footer>
+    </div>
+  </body>
+</html>
 
     <script>
       // Search functionality
@@ -127,7 +137,8 @@ console.log("Wine data:", wines.map(wine => ({
         const searchTerm = searchInput.value.toLowerCase();
         wineCards.forEach(card => {
           const wineName = card.querySelector('h2').textContent.toLowerCase();
-          if (wineName.includes(searchTerm)) {
+          const wineCountry = card.querySelector('.country-tag').textContent.toLowerCase();
+          if (wineName.includes(searchTerm) || wineCountry.includes(searchTerm)) {
             card.style.display = 'flex';
           } else {
             card.style.display = 'none';
@@ -192,7 +203,7 @@ console.log("Wine data:", wines.map(wine => ({
     --on-background: #ffffff;
     --on-surface: #ffffff;
   }
-  
+
   body[data-theme="light"] {
     --background: #f0f0f0;
     --surface: #ffffff;
@@ -207,14 +218,14 @@ console.log("Wine data:", wines.map(wine => ({
     padding: 0;
     box-sizing: border-box;
   }
-  
+
   body {
     font-family: 'Roboto', sans-serif;
     background-color: var(--background);
     color: var(--on-background);
     line-height: 1.6;
   }
-  
+
   header {
     background-color: var(--surface);
     padding: 1rem 0;
@@ -223,8 +234,13 @@ console.log("Wine data:", wines.map(wine => ({
     top: 0;
     z-index: 1000;
   }
-  
+
   nav {
+    padding: 1rem 0;
+    background-color: var(--surface);
+  }
+
+  .nav-content {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
@@ -232,51 +248,106 @@ console.log("Wine data:", wines.map(wine => ({
     align-items: center;
     padding: 0 1rem;
   }
-  
+
   .logo {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--primary);
   }
-  
+  nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  nav ul li {
+    margin: 0 1rem;
+  }
+
+  nav ul li:first-child {
+    margin-left: 0;
+  }
+
+  nav ul li:last-child {
+    margin-right: 0;
+  }
+
+  #theme-toggle {
+    background: none;
+    border: none;
+    color: var(--on-surface);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .nav-content {
+      flex-direction: column;
+    }
+
+    nav ul {
+      margin-top: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    nav ul li {
+      margin: 0.5rem 1rem;
+    }
+
+    #theme-toggle {
+      margin-top: 1rem;
+    }
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
   nav ul {
     display: flex;
     list-style: none;
   }
-  
+
   nav ul li {
     margin-left: 2rem;
   }
-  
+
   nav ul li a {
     color: var(--on-surface);
     text-decoration: none;
     transition: color 0.3s ease;
   }
-  
+
   nav ul li a:hover, nav ul li a.active {
     color: var(--primary);
   }
-  
+
   main {
     max-width: 1200px;
     margin: 2rem auto;
     padding: 0 1rem;
   }
+
   
+
   h1 {
     font-size: 2.5rem;
     color: var(--primary);
     margin-bottom: 2rem;
     text-align: center;
   }
-  
+
   .search-container {
     display: flex;
     justify-content: center;
     margin-bottom: 2rem;
   }
-  
+
   #search-input {
     width: 300px;
     padding: 0.5rem;
@@ -286,7 +357,7 @@ console.log("Wine data:", wines.map(wine => ({
     background-color: var(--surface);
     color: var(--on-surface);
   }
-  
+
   #search-button {
     padding: 0.5rem 1rem;
     font-size: 1rem;
@@ -297,17 +368,17 @@ console.log("Wine data:", wines.map(wine => ({
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
-  
+
   #search-button:hover {
     background-color: var(--secondary);
   }
-  
+
   .wine-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 2rem;
   }
-  
+
   .wine-card {
     background-color: var(--surface);
     border-radius: 8px;
@@ -318,12 +389,12 @@ console.log("Wine data:", wines.map(wine => ({
     transform: translateY(20px);
     transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease;
   }
-  
+
   .wine-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 4px 20px rgba(187, 134, 252, 0.2);
   }
-  
+
   .wine-image {
     position: relative;
     padding-top: 75%; /* 4:3 Aspect Ratio */
@@ -340,37 +411,39 @@ console.log("Wine data:", wines.map(wine => ({
     object-fit: cover;
     transition: opacity 0.3s ease;
   }
-  
+
+  .country-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--primary);
+    color: var(--background);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+
+  .country-flag {
+    margin-right: 5px;
+    font-size: 1.2em;
+  }
+
+  .country-name {
+    font-weight: bold;
+  }
+
   .wine-content {
     padding: 1.5rem;
     flex-grow: 1;
   }
-  
+
   .wine-card h2 {
     font-size: 1.2rem;
     color: var(--secondary);
     margin-bottom: 0.5rem;
   }
-  
-  .vintage, .type {
-    font-size: 0.9rem;
-    color: var(--on-surface);
-    opacity: 0.8;
-  }
-  
-  .rating {
-    margin-top: 0.5rem;
-  }
-  
-  .star {
-    color: #555;
-    font-size: 1.2rem;
-  }
-  
-  .star.filled {
-    color: var(--primary);
-  }
-  
+
   .view-details {
     display: block;
     background-color: var(--primary);
@@ -381,18 +454,368 @@ console.log("Wine data:", wines.map(wine => ({
     transition: background-color 0.3s ease;
     font-weight: 700;
   }
-  
+
   .view-details:hover {
     background-color: var(--secondary);
   }
-  
+
   .error, .no-wines {
     text-align: center;
     color: var(--secondary);
     font-size: 1.2rem;
     margin-top: 2rem;
   }
-  
+
+  footer {
+    background-color: var(--surface);
+    color: var(--on-surface);
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 2rem;
+  }
+
+  #theme-toggle {
+    background: none;
+    border: none;
+  }
+
+  #theme-toggle:hover {
+    /* Add hover styles here */
+  }
+
+  @media (max-width: 768px) {
+    /* Add responsive styles here */
+  }
+</style>
+
+    <script>
+      // Search functionality
+      const searchInput = document.getElementById('search-input');
+      const searchButton = document.getElementById('search-button');
+      const wineCards = document.querySelectorAll('.wine-card');
+
+      function performSearch() {
+        const searchTerm = searchInput.value.toLowerCase();
+        wineCards.forEach(card => {
+          const wineName = card.querySelector('h2').textContent.toLowerCase();
+          const wineCountry = card.querySelector('.country-tag').textContent.toLowerCase();
+          if (wineName.includes(searchTerm) || wineCountry.includes(searchTerm)) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      }
+
+      searchButton.addEventListener('click', performSearch);
+      searchInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+          performSearch();
+        }
+      });
+
+      // Animations
+      function animateOnScroll() {
+        const cards = document.querySelectorAll('.wine-card');
+        cards.forEach((card, index) => {
+          const rect = card.getBoundingClientRect();
+          if (rect.top <= window.innerHeight) {
+            setTimeout(() => {
+              card.style.opacity = '1';
+              card.style.transform = 'translateY(0)';
+            }, index * 100);
+          }
+        });
+      }
+
+      window.addEventListener('scroll', animateOnScroll);
+      window.addEventListener('load', animateOnScroll);
+
+      // Theme toggle functionality
+      const themeToggle = document.getElementById('theme-toggle');
+      const body = document.body;
+      const icon = themeToggle.querySelector('i');
+
+      function setTheme(theme) {
+        body.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+        icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+      }
+
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = body.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+      });
+
+      // Set initial theme
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      setTheme(savedTheme);
+    </script>
+  </body>
+</html>
+
+<style>
+  :root {
+    --background: #121212;
+    --surface: #1e1e1e;
+    --primary: #bb86fc;
+    --secondary: #03dac6;
+    --on-background: #ffffff;
+    --on-surface: #ffffff;
+  }
+
+  body[data-theme="light"] {
+    --background: #f0f0f0;
+    --surface: #ffffff;
+    --primary: #6200ee;
+    --secondary: #03dac6;
+    --on-background: #000000;
+    --on-surface: #000000;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Figtree', sans-serif;
+    background-color: var(--background);
+    color: var(--on-background);
+    line-height: 1.6;
+  }
+
+  header {
+    background-color: var(--surface);
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  nav {
+    padding: 1rem 0;
+    background-color: var(--surface);
+  }
+
+  .nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  nav ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  nav ul li {
+    margin: 0 1rem;
+  }
+
+  nav ul li:first-child {
+    margin-left: 0;
+  }
+
+  nav ul li:last-child {
+    margin-right: 0;
+  }
+
+  #theme-toggle {
+    background: none;
+    border: none;
+    color: var(--on-surface);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .nav-content {
+      flex-direction: column;
+    }
+
+    nav ul {
+      margin-top: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    nav ul li {
+      margin: 0.5rem 1rem;
+    }
+
+    #theme-toggle {
+      margin-top: 1rem;
+    }
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  nav ul {
+    display: flex;
+    list-style: none;
+  }
+
+  nav ul li {
+    margin-left: 2rem;
+  }
+
+  nav ul li a {
+    color: var(--on-surface);
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  nav ul li a:hover, nav ul li a.active {
+    color: var(--primary);
+  }
+
+  main {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .search-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+
+  #search-input {
+    width: 300px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px 0 0 4px;
+    background-color: var(--surface);
+    color: var(--on-surface);
+  }
+
+  #search-button {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    background-color: var(--primary);
+    color: var(--background);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  #search-button:hover {
+    background-color: var(--secondary);
+  }
+
+  .wine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+  }
+
+  .wine-card {
+    background-color: var(--surface);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease;
+  }
+
+  .wine-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 20px rgba(187, 134, 252, 0.2);
+  }
+
+  .wine-image {
+    position: relative;
+    padding-top: 75%; /* 4:3 Aspect Ratio */
+    overflow: hidden;
+    background-color: #f0f0f0; /* Light grey background for image placeholder */
+  }
+
+  .wine-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.3s ease;
+  }
+
+  .country-tag {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--primary);
+    color: var(--background);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+
+  .wine-content {
+    padding: 1.5rem;
+    flex-grow: 1;
+  }
+
+  .wine-card h2 {
+    font-size: 1.2rem;
+    color: var(--secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .view-details {
+    display: block;
+    background-color: var(--primary);
+    color: var(--background);
+    text-align: center;
+    padding: 0.75rem;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    font-weight: 700;
+  }
+
+  .view-details:hover {
+    background-color: var(--secondary);
+  }
+
+  .error, .no-wines {
+    text-align: center;
+    color: var(--secondary);
+    font-size: 1.2rem;
+    margin-top: 2rem;
+  }
+
   footer {
     background-color: var(--surface);
     color: var(--on-surface);
@@ -418,20 +841,25 @@ console.log("Wine data:", wines.map(wine => ({
     .wine-grid {
       grid-template-columns: 1fr;
     }
-    
+
     nav {
       flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
-    
+
     nav ul {
       margin-top: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    
+
     nav ul li {
       margin-left: 1rem;
       margin-right: 1rem;
     }
-    
+
     #search-input {
       width: 200px;
     }
