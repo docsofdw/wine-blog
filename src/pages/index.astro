@@ -61,16 +61,19 @@ try {
   <body>
     <div class="container">
       <header>
-        <nav>
-          <div class="logo">TechVino</div>
-          <ul>
-            <li><a href="#" class="active">Home</a></li>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Contact</a></li>
+        <nav class="container">
+          <a href="/" class="logo">TechVino</a>
+          <input type="checkbox" id="nav-toggle" class="nav-toggle">
+          <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/contact">Contact</a></li>
           </ul>
           <button id="theme-toggle" aria-label="Toggle dark/light mode">
-            <i class="fas fa-moon"></i>
+        <i class="fas fa-adjust"></i>
           </button>
+          <label for="nav-toggle" class="nav-toggle-label">
+        <span></span>
+          </label>
         </nav>
       </header>
       <main>
@@ -98,15 +101,32 @@ try {
               </div>
               <div class="wine-content">
                 <h2>{wine.attributes.Name}</h2>
-                <a href={`/wine/${wine.id}`} class="view-details">View Details</a>
+                <div class="button-container">
+                  <a href={`/wine/${wine.id}`} class="view-details">View Details</a>
+                  {wine.attributes.OriginalArticleUrl && (
+                    <a href={wine.attributes.OriginalArticleUrl} class="article-link" target="_blank" rel="noopener noreferrer" title="View original article">
+                      <i class="fas fa-external-link-alt"></i>
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       </main>
-      <footer>
-        <p>&copy; Designed & Developed by docsofdw</p>
+      <footer class="site-footer">
+        <div class="footer-container">
+          <p class="footer-text">Built by <a href="https://www.docsofdw.com" target="_blank" rel="noopener noreferrer">docsofdw</a></p>
+          <div class="footer-social">
+            <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          </div>
+        </div>
       </footer>
+      
+      
+      
     </div>
 
     <script>
@@ -237,34 +257,20 @@ try {
 
 <style>
 :root {
-  --background: #ffffff;
-  --surface: #f8f8f8;
   --primary: #FF5A5F;
   --secondary: #00A699;
-  --text: #484848;
-  --text-light: #767676;
-  --border: #DDDDDD;
-  --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-body[data-theme="dark"] {
   --background: #1a1a1a;
   --surface: #2a2a2a;
-  --primary: #FF5A5F;
-  --secondary: #00A699;
   --text: #ffffff;
   --text-light: #b0b0b0;
   --border: #3a3a3a;
+  --nav-height: 60px;
   --shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
 }
 
-* {
+body {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-}
-
-body {
   font-family: 'Inter', sans-serif;
   background-color: var(--background);
   color: var(--text);
@@ -278,44 +284,48 @@ body {
 }
 
 header {
-  background-color: var(--background);
-  padding: 20px 0;
-  position: sticky;
+  background-color: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(10px);
+  position: fixed;
+  width: 100%;
   top: 0;
   z-index: 1000;
-  box-shadow: var(--shadow);
 }
 
 nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: var(--nav-height);
 }
 
 .logo {
+  color: var(--primary);
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--primary);
+  text-decoration: none;
+  letter-spacing: 1px;
 }
 
-nav ul {
+.nav-links {
   display: flex;
   list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-nav ul li {
+.nav-links li {
   margin-left: 30px;
 }
 
-nav ul li a {
+.nav-links a {
   color: var(--text);
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 500;
   transition: color 0.3s ease;
 }
 
-nav ul li a:hover,
-nav ul li a.active {
+.nav-links a:hover {
   color: var(--primary);
 }
 
@@ -332,7 +342,17 @@ nav ul li a.active {
   color: var(--primary);
 }
 
+.nav-toggle {
+  display: none;
+}
+
+.nav-toggle-label {
+  display: none;
+  cursor: pointer;
+}
+
 main {
+  margin-top: var(--nav-height);
   padding: 40px 0;
 }
 
@@ -385,15 +405,14 @@ main {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   flex-direction: column;
-  height: 100%; /* Ensure cards fill the available height */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .wine-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
 }
 
 .wine-image {
@@ -412,10 +431,14 @@ main {
   transition: transform 0.3s ease;
 }
 
+.wine-card:hover .wine-image img {
+  transform: scale(1.05);
+}
+
 .country-tag {
   position: absolute;
   top: 10px;
-  right: 10px;  /* Positioned on the right */
+  right: 10px;
   background-color: rgba(0, 0, 0, 0.7);
   color: white;
   padding: 5px 10px;
@@ -432,81 +455,165 @@ main {
   font-size: 1.2em;
 }
 
-/* Optional: Add a hover effect to the image */
-.wine-card:hover .wine-image img {
-  transform: scale(1.05);
-}
-
-.country-name {
-  font-weight: 600;
-}
-
 .wine-content {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 20px;
   flex-grow: 1;
 }
 
-.view-details, .external-link {
-  display: inline-block;
-  background-color: var(--primary);
-  color: white;
-  padding: 8px 20px;
-  border-radius: 50px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  align-self: flex-start;
+.button-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
 }
 
 .view-details {
-  margin-top: auto;
+  flex-grow: 1;
+  display: inline-block;
+  background-color: var(--primary);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.external-link {
-  margin-top: 10px;
-  background-color: var(--secondary);
-}
-
-.view-details:hover, .external-link:hover {
+.view-details:hover {
   background-color: var(--secondary);
   transform: translateY(-2px);
 }
 
-.external-link:hover {
-  background-color: var(--primary);
-}
-
-footer {
+.article-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   background-color: var(--surface);
-  color: var(--text-light);
-  text-align: center;
-  padding: 20px 0;
-  margin-top: 40px;
+  color: var(--primary);
+  border-radius: 50%;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 
-@media (max-width: 768px) {
-  nav {
-    flex-direction: column;
-    align-items: flex-start;
+.article-link:hover {
+  background-color: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.article-link i {
+  font-size: 0.8rem;
+}
+
+.site-footer {
+  background-color: var(--background); /* Match the page's background color */
+  padding: 40px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+  color: var(--text-light);
+}
+
+.footer-container p {
+  margin: 0 0 20px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-light);
+  letter-spacing: 1px;
+  font-style: italic;
+  text-align: center; /* Center align the text */
+}
+
+.footer-container a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 700; /* Stronger emphasis for the link */
+  transition: color 0.3s ease;
+}
+
+.footer-container a:hover {
+  color: var(--secondary);
+}
+
+.footer-social {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Balanced spacing between icons */
+  margin-top: 10px;
+}
+
+.footer-social a {
+  color: var(--text);
+  font-size: 1.8rem; /* Slightly larger for emphasis */
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.footer-social a:hover {
+  color: var(--primary);
+  transform: translateY(-3px); /* Slightly more pronounced hover effect */
+}
+
+@media screen and (max-width: 768px) {
+  .nav-toggle-label {
+    display: block;
+    padding: 20px;
   }
 
-  nav ul {
-    margin-top: 20px;
+  .nav-toggle-label span,
+  .nav-toggle-label span::before,
+  .nav-toggle-label span::after {
+    display: block;
+    background: var(--text);
+    height: 2px;
+    width: 25px;
+    position: relative;
   }
 
-  nav ul li {
-    margin-left: 0;
-    margin-right: 20px;
-  }
-
-  #theme-toggle {
+  .nav-toggle-label span::before,
+  .nav-toggle-label span::after {
+    content: '';
     position: absolute;
-    top: 20px;
-    right: 20px;
+  }
+
+  .nav-toggle-label span::before {
+    bottom: 8px;
+  }
+
+  .nav-toggle-label span::after {
+    top: 8px;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: rgba(26, 26, 26, 0.95);
+    height: 0;
+    overflow: hidden;
+    transition: height 0.3s ease;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nav-toggle:checked ~ .nav-links {
+    height: auto;
+    padding: 20px 0;
+  }
+
+  .nav-links li {
+    margin: 10px 0;
   }
 
   .search-container {
@@ -514,17 +621,15 @@ footer {
     align-items: center;
   }
 
-  #search-input {
-    width: 100%;
-    max-width: 300px;
-    border-radius: 30px;
-    margin-bottom: 10px;
-  }
-
+  #search-input,
   #search-button {
     width: 100%;
     max-width: 300px;
     border-radius: 30px;
+  }
+
+  #search-input {
+    margin-bottom: 10px;
   }
 }
 </style>
