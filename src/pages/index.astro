@@ -54,7 +54,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TechVino | Discover Premium Wines</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -79,8 +79,13 @@ try {
       <main>
         <h1 class="main-title">Discover Premium Wines</h1>
         <div class="search-container">
-          <input type="text" id="search-input" placeholder="Search wines...">
-          <button id="search-button"><i class="fas fa-search"></i></button>
+          <div class="search-wrapper">
+            <input type="text" id="search-input" placeholder="Search wines...">
+            <button id="search-button" class="btn btn-primary">
+              <i class="fas fa-search"></i>
+              <span>Search</span>
+            </button>
+          </div>
         </div>
         {error && <p class="error">Error: {error}</p>}
         {wines.length === 0 && !error && <p class="no-wines">No wines found. Check console for details.</p>}
@@ -100,14 +105,19 @@ try {
                 </div>
               </div>
               <div class="wine-content">
-                <h2>{wine.attributes.Name}</h2>
-                <div class="button-container">
-                  <a href={`/wine/${wine.id}`} class="view-details">View Details</a>
+                <div class="badge-container">
+                  {wine.attributes.Type && (
+                    <span class="badge badge-type">{wine.attributes.Type}</span>
+                  )}
                   {wine.attributes.OriginalArticleUrl && (
-                    <a href={wine.attributes.OriginalArticleUrl} class="article-link" target="_blank" rel="noopener noreferrer" title="View original article">
+                    <a href={wine.attributes.OriginalArticleUrl} class="badge badge-link" target="_blank" rel="noopener noreferrer">
                       <i class="fas fa-external-link-alt"></i>
                     </a>
                   )}
+                </div>
+                <h2>{wine.attributes.Name}</h2>
+                <div class="button-container">
+                  <a href={`/wine/${wine.id}`} class="btn btn-secondary">View Details</a>
                 </div>
               </div>
             </div>
@@ -188,84 +198,20 @@ try {
   </body>
 </html>
 
-    <script>
-      // Search functionality
-      const searchInput = document.getElementById('search-input');
-      const searchButton = document.getElementById('search-button');
-      const wineCards = document.querySelectorAll('.wine-card');
-
-      function performSearch() {
-        const searchTerm = searchInput.value.toLowerCase();
-        wineCards.forEach(card => {
-          const wineName = card.querySelector('h2').textContent.toLowerCase();
-          const wineCountry = card.querySelector('.country-tag').textContent.toLowerCase();
-          if (wineName.includes(searchTerm) || wineCountry.includes(searchTerm)) {
-            card.style.display = 'flex';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      }
-
-      searchButton.addEventListener('click', performSearch);
-      searchInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') {
-          performSearch();
-        }
-      });
-
-      // Animations
-      function animateOnScroll() {
-        const cards = document.querySelectorAll('.wine-card');
-        cards.forEach((card, index) => {
-          const rect = card.getBoundingClientRect();
-          if (rect.top <= window.innerHeight) {
-            setTimeout(() => {
-              card.style.opacity = '1';
-              card.style.transform = 'translateY(0)';
-            }, index * 100);
-          }
-        });
-      }
-
-      window.addEventListener('scroll', animateOnScroll);
-      window.addEventListener('load', animateOnScroll);
-
-      // Theme toggle functionality
-      const themeToggle = document.getElementById('theme-toggle');
-      const body = document.body;
-      const icon = themeToggle.querySelector('i');
-
-      function setTheme(theme) {
-        body.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-      }
-
-      themeToggle.addEventListener('click', () => {
-        const currentTheme = body.getAttribute('data-theme') || 'dark';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        setTheme(newTheme);
-      });
-
-      // Set initial theme
-      const savedTheme = localStorage.getItem('theme') || 'dark';
-      setTheme(savedTheme);
-    </script>
-  </body>
-</html>
-
 <style>
 :root {
   --primary: #FF5A5F;
+  --primary-hover: #FF7A7F;
   --secondary: #00A699;
-  --background: #1a1a1a;
-  --surface: #2a2a2a;
-  --text: #ffffff;
-  --text-light: #b0b0b0;
-  --border: #3a3a3a;
+  --secondary-hover: #00C6B9;
+  --background: #0F172A;
+  --surface: #1E293B;
+  --text: #E2E8F0;
+  --text-light: #94A3B8;
+  --border: #334155;
   --nav-height: 60px;
-  --shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 body {
@@ -369,40 +315,82 @@ main {
   margin-bottom: 40px;
 }
 
+.search-wrapper {
+  display: flex;
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--surface);
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
 #search-input {
-  width: 300px;
-  padding: 10px 15px;
+  flex-grow: 1;
+  padding: 12px 20px;
   font-size: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 30px 0 0 30px;
+  border: none;
+  background-color: transparent;
+  color: var(--text);
+}
+
+#search-input:focus {
+  outline: none;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-hover);
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
   background-color: var(--surface);
   color: var(--text);
 }
 
-#search-button {
-  padding: 10px 20px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 0 30px 30px 0;
-  background-color: var(--primary);
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-#search-button:hover {
-  background-color: var(--secondary);
+.btn-icon:hover {
+  background-color: var(--border);
 }
 
 .wine-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 30px;
 }
 
 .wine-card {
   background-color: var(--surface);
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   box-shadow: var(--shadow);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -412,7 +400,7 @@ main {
 
 .wine-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-lg);
 }
 
 .wine-image {
@@ -461,6 +449,48 @@ main {
   justify-content: space-between;
   padding: 20px;
   flex-grow: 1;
+}
+
+.badge-container {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.badge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: var(--text);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.badge-type {
+  border: 1px solid var(--primary);
+}
+
+.badge-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--secondary);
+  text-decoration: none;
+}
+
+.badge-link:hover {
+  background-color: var(--secondary);
+  color: white;
+}
+
+.wine-content h2 {
+  margin: 0 0 15px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .button-container {
@@ -621,15 +651,18 @@ main {
     align-items: center;
   }
 
-  #search-input,
-  #search-button {
-    width: 100%;
-    max-width: 300px;
-    border-radius: 30px;
+  .search-wrapper {
+    flex-direction: column;
+    border-radius: 12px;
   }
 
   #search-input {
-    margin-bottom: 10px;
+    width: 100%;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .btn-primary {
+    border-radius: 0 0 12px 12px;
   }
 }
 </style>
