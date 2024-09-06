@@ -30,5 +30,8 @@ pnpm-debug.log*
 # Temporary files
 *.log
 *.tmp
-```
+
+# Output directory
+/public
+
 grateful-giant/

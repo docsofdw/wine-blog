@@ -1,13 +1,23 @@
 ---
 export async function getStaticPaths() {
-  const strapiUrl = import.meta.env.PUBLIC_STRAPI_URL || 'http://localhost:1337';
-  const res = await fetch(`${strapiUrl}/api/wines?populate=*`);
-  const { data } = await res.json();
+  const strapiUrl = import.meta.env.PUBLIC_STRAPI_URL;
+  if (!strapiUrl) {
+    console.error("PUBLIC_STRAPI_URL is not set");
+    return [];
+  }
+  
+  try {
+    const res = await fetch(`${strapiUrl}/api/wines?populate=*`);
+    const { data } = await res.json();
 
-  return data.map((wine) => ({
-    params: { id: wine.id.toString() },
-    props: { wine },
-  }));
+    return data.map((wine) => ({
+      params: { id: wine.id.toString() },
+      props: { wine },
+    }));
+  } catch (error) {
+    console.error("Error fetching wines:", error);
+    return [];
+  }
 }
 
 const { wine } = Astro.props;
