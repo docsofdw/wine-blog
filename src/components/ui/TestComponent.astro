@@ -1,0 +1,30 @@
+---
+---
+
+<div id="test-component">
+  <p>This is a test component</p>
+  <button id="test-button">Click me</button>
+</div>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const button = document.getElementById('test-button');
+    const container = document.getElementById('test-component');
+
+    if (button && container) {
+      button.addEventListener('click', () => {
+        container.innerHTML += '<p>Button was clicked!</p>';
+      });
+    } else {
+      console.error('Button or container not found');
+    }
+  });
+</script>
+
+<style>
+  #test-component {
+    border: 2px solid blue;
+    padding: 20px;
+    margin: 20px 0;
+  }
+</style>

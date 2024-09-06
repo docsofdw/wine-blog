@@ -45,3 +45,12 @@ All commands are run from the root of the project, from a terminal:
 ## 👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+
+## 🚀 Deployment
+
+This project is deployed on Cloudflare Pages and linked to the GitHub repository. The site is accessible at [https://drinksofdw.com](https://drinksofdw.com).
+
+### Deployment Process
+1. Push changes to the main branch of the GitHub repository.
+2. Cloudflare Pages will automatically detect the changes and trigger a new build.
+3. Once the build is complete, the changes will be live on the site.

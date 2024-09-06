@@ -1,58 +1,16 @@
 ---
 export async function getStaticPaths() {
-  const STRAPI_URL = import.meta.env.PUBLIC_STRAPI_URL;
-  const STRAPI_API_TOKEN = import.meta.env.PUBLIC_STRAPI_API_TOKEN;
+  const strapiUrl = import.meta.env.PUBLIC_STRAPI_URL || 'http://localhost:1337';
+  const res = await fetch(`${strapiUrl}/api/wines?populate=*`);
+  const { data } = await res.json();
 
-  const response = await fetch(`${STRAPI_URL}/api/wines?populate=*`, {
-    headers: {
-      'Authorization': `Bearer ${STRAPI_API_TOKEN}`
-    }
-  });
-  const data = await response.json();
-  
-  return data.data.map((wine) => ({
+  return data.map((wine) => ({
     params: { id: wine.id.toString() },
     props: { wine },
   }));
 }
 
-const { id } = Astro.params;
 const { wine } = Astro.props;
-
-function getImageUrl(wine) {
-  if (wine.attributes.Image?.data?.attributes?.url) {
-    const imageUrl = wine.attributes.Image.data.attributes.url;
-    return imageUrl.startsWith('http') ? imageUrl : `${import.meta.env.PUBLIC_STRAPI_URL}${imageUrl}`;
-  }
-  return '/placeholder-wine.jpg';
-}
-
-function renderDescription(description) {
-  if (typeof description === 'string') {
-    return description;
-  } else if (Array.isArray(description)) {
-    return description.map((block) => {
-      if (block.type === 'paragraph') {
-        return `<p>${block.children.map(child => child.text).join('')}</p>`;
-      }
-      // Add more conditions here for other types of content blocks
-      return '';
-    }).join('');
-  } else if (typeof description === 'object' && description !== null) {
-    // If it's a rich text field, it might have a 'children' property
-    if (Array.isArray(description.children)) {
-      return description.children.map(child => {
-        if (child.type === 'paragraph') {
-          return `<p>${child.children.map(textNode => textNode.text).join('')}</p>`;
-        }
-        return '';
-      }).join('');
-    }
-    console.log('Description structure:', JSON.stringify(description, null, 2));
-    return 'Unable to render description. Please check the console for the description structure.';
-  }
-  return 'No description available.';
-}
 ---
 
 <html lang="en">

@@ -1,0 +1,58 @@
+---
+---
+
+<div id="tag-sorter-root">Tag Sorter Initialized</div>
+
+<script is:inline>
+  function setupTagSorting() {
+    const root = document.getElementById('tag-sorter-root');
+    const tagButtons = document.querySelectorAll('.tag-button');
+    const wineCards = document.querySelectorAll('.wine-card');
+
+    root.textContent += `\nFound ${tagButtons.length} tag buttons and ${wineCards.length} wine cards`;
+
+    function handleClick(event) {
+      const selectedTag = event.target.getAttribute('data-tag');
+      root.textContent += `\nClicked tag: ${selectedTag}`;
+
+      let visibleCards = 0;
+      wineCards.forEach(card => {
+        const wineType = card.querySelector('.badge-type')?.textContent;
+        root.textContent += `\nWine type: ${wineType}`;
+        if (selectedTag === 'all' || wineType === selectedTag) {
+          card.style.display = 'flex';
+          visibleCards++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      root.textContent += `\nVisible cards: ${visibleCards}`;
+
+      tagButtons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    tagButtons.forEach(button => {
+      button.addEventListener('click', handleClick);
+    });
+
+    root.textContent += '\nEvent listeners attached';
+  }
+
+  // Run setup immediately
+  setupTagSorting();
+
+  // Also run on page load in case of dynamic content
+  window.addEventListener('load', setupTagSorting);
+</script>
+
+<style>
+  #tag-sorter-root {
+    background-color: #f0f0f0;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    white-space: pre-wrap;
+  }
+</style>
