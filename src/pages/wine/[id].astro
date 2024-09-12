@@ -1,26 +1,15 @@
 ---
+import { getImageUrl } from '../../utils/imageUtils'; // Assuming the utility file is in the utils folder
+import { fetch } from 'undici';
+
 export async function getStaticPaths() {
-  const strapiUrl = import.meta.env.PUBLIC_STRAPI_URL;
-  if (!strapiUrl) {
-    console.error("PUBLIC_STRAPI_URL is not set");
-    return [];
-  }
-  
-  try {
-    const res = await fetch(`${strapiUrl}/api/wines?populate=*`);
-    const { data } = await res.json();
+  const response = await fetch(`${import.meta.env.PUBLIC_STRAPI_URL}/api/your-endpoint`);
+  const data = await response.json();
 
-    return data.map((wine) => ({
-      params: { id: wine.id.toString() },
-      props: { wine },
-    }));
-  } catch (error) {
-    console.error("Error fetching wines:", error);
-    return [];
-  }
+  return data.map(item => ({
+    params: { id: item.id.toString() },
+  }));
 }
-
-const { wine } = Astro.props;
 ---
 
 <html lang="en">
@@ -49,7 +38,7 @@ const { wine } = Astro.props;
       </div>
       <article class="wine-detail">
         <h1>{wine.attributes.Name}</h1>
-        <img src={getImageUrl(wine)} alt={wine.attributes.Name} class="wine-image" />
+        <img src={getImageUrl(wine.image)} alt={wine.attributes.Name} class="wine-image" />
         <div class="wine-info">
           <p><strong>Vintage:</strong> {wine.attributes.Vintage}</p>
           <p><strong>Type:</strong> {wine.attributes.Type}</p>

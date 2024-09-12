@@ -1,12 +1,11 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  outDir: 'public',
-  site: 'https://drinksofdw.com',
-  // Add other configurations as needed
+  outDir: 'dist', // Change this to a directory outside of 'public'
   vite: {
     define: {
       'import.meta.env.PUBLIC_STRAPI_URL': JSON.stringify(process.env.PUBLIC_STRAPI_URL),
     },
   },
+  // ... other config options
 });
